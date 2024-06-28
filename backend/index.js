@@ -1,66 +1,62 @@
-const express = require('express');
+const express = require("express");
+const { createTodo, updateTodo } = require("./types");
+const { todo } = require("./db");
+const cors = require("cors");
 const app = express();
-const { createTodo,updateTodo } = require("./types"); // Ensure these are imported correctly
-const { todo } = require('./db'); // Ensure this is the correct import
 
 app.use(express.json());
+app.use(cors());
 
-// POST /todo
 app.post("/todo", async function(req, res) {
     const createPayload = req.body;
-    const parsePayoad = createTodo.safeParse(createPayload);
-    
+    const parsedPayload = createTodo.safeParse(createPayload);
 
-    if (!parsePayoad.success) {
+    if (!parsedPayload.success) {
         res.status(411).json({
-            msg: "You sent the wrong inputs"
-        });
+            msg: "You sent the wrong inputs",
+        })
         return;
     }
-    // put in mongo db
+    // put it in mongodb
     await todo.create({
-        title: parsePayoad.data.title,
-        description: parsePayoad.data.description,
-        completed: false // corrected typo
-    });
+        title: parsedPayload.title,
+        description: createPayload.description,
+        completed: false
+    })
 
     res.json({
-        msg: "Todo Created"
-    });
-});
+        msg: "Todo created"
+    })
+})
 
-// GET /todos
 app.get("/todos", async function(req, res) {
-    const todos = await todo.find({});
-    res.json({
-        todos
-    });
-});
+    // const todos = await todo.find({});
 
-// PUT /completed
+    res.json({
+        todos: []
+    })
+
+})
+
 app.put("/completed", async function(req, res) {
     const updatePayload = req.body;
-    const parsePayLoad = updateTodo.safeParse(updatePayload);
-
-    if (!parsePayLoad.success) {
+    const parsedPayload = updateTodo.safeParse(updatePayload);
+    if (!parsedPayload.success) {
         res.status(411).json({
-            msg: "You sent the wrong inputs"
-        });
+            msg: "You sent the wrong inputs",
+        })
         return;
     }
 
-    await todo.updateOne(
-        { _id: req.body.id }, 
-        { completed: true
-
-         } // corrected typo
-    );
+    await todo.update({
+        _id: req.body.id
+    }, {
+      completed: true  
+    })
 
     res.json({
         msg: "Todo marked as completed"
-    });
-});
+    })
+})
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
-});
+app.listen(3000);
